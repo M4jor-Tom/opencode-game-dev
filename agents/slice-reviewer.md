@@ -5,4 +5,4 @@ permission:
   edit: deny
   bash: deny
 ---
-Read the brief, changed files and test results. Report spec and quality findings; do not edit.
+Read the brief, changed files and test results. Return both spec and quality verdicts and every finding with severity, location, evidence and correction. Do not edit; the controller saves your response.

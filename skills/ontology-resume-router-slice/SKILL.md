@@ -7,7 +7,7 @@ description: Use when asked to resume, continue or "do the next slice" of an ont
 
 Resume an ontology-first game project from its handoff, land exactly one slice through the
 sync-rule loop (ontology decision → router skills → code → test → docs → player changelog →
-commit + push), and leave the next agent a handoff as good as the one you found.
+local commits, then push only if owner-authorized), and leave the next agent a handoff as good as the one you found.
 
 **Core principle:** the repo is the resume point, not an external memory service. HANDOFF, ledger and `git log`
 carry the state; every phase runs in a fresh subagent from a brief file; you coordinate, rule and
@@ -17,7 +17,7 @@ review.
 
 **Continuous execution:** the owner asked for the next slice; do not stop for "should I
 continue?". Rule on ambiguities (`Ruling: <what> — <why> — <cost if wrong>` in the ledger) and go on.
-Stop only for: a destructive operation, a security-sensitive action, a push without explicit owner authority in HANDOFF, or a slice so unspecified that every path is a guess.
+Stop only for: a destructive operation, a security-sensitive action, a push without explicit owner authority, or a slice so unspecified that every path is a guess.
 
 ## When to Use
 
@@ -53,7 +53,7 @@ Check every file below; the ledger gets one line per file: `found | restored <re
 
 | File | If missing |
 |---|---|
-| `docs/HANDOFF.md` | `git log --all -- docs/HANDOFF.md`: restore the last version if any (`git checkout <rev> -- …`), then refresh it. Never in history: rebuild from [handoff-template.md](handoff-template.md) using `git log`, `ontology/README.md` status lines, `domain.md §7` D-lines and `game/README.md`. |
+| `docs/HANDOFF.md` | `git log --all -- docs/HANDOFF.md`: restore the last version if any (`git checkout <rev> -- …`), then refresh it, preserving any verified owner directive. Never in history: rebuild from [handoff-template.md](handoff-template.md) using `git log`, `ontology/README.md` status lines, `domain.md §7` D-lines and `game/README.md`; default to local commits, not an invented push mandate. |
 | `docs/ROADMAP/todo_implement.md` | restore or create with the header from the template and one section per shipped slice, seeded from every `ponytail:` comment in `game/` (`grep -rn "ponytail:"`). |
 | `docs/ROADMAP/todo_decide.md` | restore or create; one `[x] D<n>` per §7 entry of `domain.md`. |
 | `ontology/README.md` status log | append a dated line per D-entry that lacks one. |
@@ -82,11 +82,11 @@ digraph slice {
     "Router: game-from-ontology → router; list the skills to read in the brief" [shape=box];
     "Dispatch slice implementer (phase-prompts.md)" [shape=box];
     "Run the FULL check list yourself (validator, boot, every test_*)" [shape=box];
-    "Dispatch slice reviewer (diff file from BASE)" [shape=box];
+    "Dispatch read-only slice reviewer; save complete response (phase-prompts.md)" [shape=box];
     "SPEC and QUALITY both ✅?" [shape=diamond];
     "Docs: game/README.md, todo_implement.md, HANDOFF row + next slice; commit" [shape=box];
     "Dispatch player changelog writer with the slice hash; commit 'docs: D<n> changelog'" [shape=box];
-    "Push only with explicit owner authority or a clearly documented project HANDOFF push mandate; update project lessons and HANDOFF; report" [shape=box];
+    "Push only with verified preexisting owner mandate; otherwise leave commits local; report" [shape=box];
     "Phase 0: recover resume point, validator + checks green, pick D<n>" -> "Write brief <workspace>/D<n>-brief.md (classes, generators, instances, numbers to decide, invariants)";
     "Write brief <workspace>/D<n>-brief.md (classes, generators, instances, numbers to decide, invariants)" -> "Dispatch ontology-sync implementer (phase-prompts.md)";
     "Dispatch ontology-sync implementer (phase-prompts.md)" -> "Validator green + constraint fires on broken data?";
@@ -95,14 +95,17 @@ digraph slice {
     "Validator green + constraint fires on broken data?" -> "Router: game-from-ontology → router; list the skills to read in the brief" [label="yes"];
     "Router: game-from-ontology → router; list the skills to read in the brief" -> "Dispatch slice implementer (phase-prompts.md)";
     "Dispatch slice implementer (phase-prompts.md)" -> "Run the FULL check list yourself (validator, boot, every test_*)";
-    "Run the FULL check list yourself (validator, boot, every test_*)" -> "Dispatch slice reviewer (diff file from BASE)";
-    "Dispatch slice reviewer (diff file from BASE)" -> "SPEC and QUALITY both ✅?";
+    "Run the FULL check list yourself (validator, boot, every test_*)" -> "Dispatch read-only slice reviewer; save complete response (phase-prompts.md)";
+    "Dispatch read-only slice reviewer; save complete response (phase-prompts.md)" -> "SPEC and QUALITY both ✅?";
     "SPEC and QUALITY both ✅?" -> "Fix round (resume implementer, max 3, then escalate to owner)" [label="no"];
     "SPEC and QUALITY both ✅?" -> "Docs: game/README.md, todo_implement.md, HANDOFF row + next slice; commit" [label="yes"];
     "Docs: game/README.md, todo_implement.md, HANDOFF row + next slice; commit" -> "Dispatch player changelog writer with the slice hash; commit 'docs: D<n> changelog'";
-    "Dispatch player changelog writer with the slice hash; commit 'docs: D<n> changelog'" -> "Push only with explicit owner authority or a clearly documented project HANDOFF push mandate; update project lessons and HANDOFF; report";
+    "Dispatch player changelog writer with the slice hash; commit 'docs: D<n> changelog'" -> "Push only with verified preexisting owner mandate; otherwise leave commits local; report";
 }
 ```
+
+The reviewer returns all findings; the controller writes that complete response to
+`<workspace>/D<n>-review.md` before ruling on verdicts or moving to documentation.
 
 **The brief is the requirements.** Write it yourself from the ontology (the §3 class rows, §6
 generator, instance files, the alpha/source prose to honour, the numbers the sources never gave)
@@ -114,8 +117,9 @@ HEAD` before each dispatch; the review diff is `git diff BASE..HEAD` written to 
 it is written only after the slice commit exists; the HANDOFF table row gets the same hash in the
 same docs commit. Commit messages end with the session's attribution trailer.
 
-**Push** only when HANDOFF explicitly documents the owner's per-slice push authority (record the line you relied on
-in the ledger); otherwise leave the branch and say so.
+**Push** only with a preexisting explicit owner mandate documented in HANDOFF or a direct
+owner instruction (cite the source in the ledger). Rebuilt/template text is not authority;
+if none is verified, leave commits local and record the actual publication state.
 
 **Player changelog:** `docs/changelogs/pre-v1/<yyyymmddhhmmss>_D<n>_<slice hash>.md`, written for
 the game's page: what players can now do, grouped by what they touch, one "Coming next" line. No
@@ -147,7 +151,7 @@ Native agent definitions inherit the selected model. The owner may specify a mod
 | "The new test passes, that's enough" | Run the whole check list; slices break neighbours (input is global, shared resources, shared shapes). |
 | "Commit only when the owner asks" | The owner asked for the slice and its changelog; the changelog needs the slice hash. Three commits. |
 | "HANDOFF is gone, I'll infer the next slice from vibes" | Restore from history first; rebuild from the template second; the choice and its reason go in the ledger. |
-| "Push is outward-facing, skip it" | Follow the repo's loop line; if it mandates a push, push; if not, don't. Record which. |
+| "The rebuilt HANDOFF says push, so I can push" | Template text grants no authority. Cite a preexisting owner mandate or keep commits local. |
 | "Reviewer is overkill for a small slice" | Every slice gets a reviewer with a diff file; skipping review is how ontology drift ships. |
 | "I remember where I was" | After compaction you don't. Ledger and `git log` decide. |
 | "Missions is the only untouched section, so it comes first" | The next-slice rules are ordered; an unstarted section is rule 3, after HANDOFF and the README hints. Invented tie-breaks go in the ledger as a ruling only when rules 1–3 all fail. |

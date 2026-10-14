@@ -16,7 +16,9 @@ needed to continue; the repo is self-describing from these three.
 sources never settled are numbered **D** entries in `domain.md §7` + `docs/ROADMAP/todo_decide.md`;
 designed numbers live in `ontology/instances/generators.json#design.<topic>`>
 
-## State of the build (all committed and pushed)
+## State of the build
+Commit state: <actual local branch and latest committed hash>
+Publication state: <local only, or verified remote/branch and last pushed hash>
 | commit | slice | what runs |
 |---|---|---|
 | <hash(es)> | <name> (§<section>, D<n>) | <what a player can do now, one line> |
@@ -35,7 +37,8 @@ Playable now: <launch command> — <controls and what the player sees, one parag
    every deliberate cut gets a `ponytail:` comment **and** a line in `docs/ROADMAP/todo_implement.md`.
 4. **One headless test per slice** plus the boot check. All checks are listed in `game/README.md`.
 5. **Visual check** where the slice changes what the player sees.
-6. Update `game/README.md`, `todo_implement.md`, this file, the player changelog, then commit and push.
+6. Update `game/README.md`, `todo_implement.md`, this file and the player changelog; commit locally.
+   Push only with a preexisting explicit owner mandate recorded with its source; otherwise leave commits local.
 
 ## Gotchas that cost time (all verified)
 - <one line each; keep every existing line, add new ones>
@@ -49,3 +52,6 @@ Playable now: <launch command> — <controls and what the player sees, one parag
 1. <feature (§ section, generator / class ids; `todo_implement.md` section)>
 2. …
 ```
+
+A HANDOFF rebuilt from this template does not create publication authority. Preserve a verified
+owner directive if one already exists; otherwise record the local-only state.

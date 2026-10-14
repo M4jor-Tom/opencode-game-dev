@@ -59,9 +59,12 @@ Two verdicts, both required:
   exist, does every cut have a `ponytail:` comment AND a todo_implement.md line?
 - Quality: hidden ontology drift (numbers in code), missing validator coverage, tests that assert
   nothing, gotchas violated (`@onready` in setup, autoload names in gameplay scripts, unbounded runs).
-Never dispatch subagents. Write findings to <workspace>/D<n>-review.md; return only: SPEC ✅/❌,
-QUALITY ✅/❌, count of findings, the single most severe one.
+Never dispatch subagents or write files. Return both SPEC ✅/❌ and QUALITY ✅/❌ verdicts,
+with every finding (severity, location, evidence and suggested correction); say "no findings" if clean.
 ```
+
+The controller saves the reviewer's complete response to `<workspace>/D<n>-review.md` before
+ruling on findings or proceeding to docs. The reviewer is read-only (`edit` and `bash` denied).
 
 ## Player changelog writer
 
